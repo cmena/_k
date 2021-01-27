@@ -1,0 +1,91 @@
+#!/usr/bin/python3
+
+import atexit
+import evdev
+
+import emit
+import profile
+
+kbd = evdev.InputDevice(profile.device())
+ui = evdev.UInput.from_device(kbd, name="=kbd=")
+
+emit.setui(ui)
+
+atexit.register(ui.close)
+atexit.register(kbd.ungrab)
+
+kbd.grab()
+
+remap = profile.keytab()
+
+# the currently held modifier key
+kmod = None
+
+def do_kevent(event):
+    global kmod
+
+    # print("%s :: %s" % (event.value, evdev.categorize(event)))
+
+    k = remap.get(event.code)
+
+    if kmod:
+        # if event.code is not mapped (k is None) or its mapping does not refer
+        # to the active modifier (k is not kmod) fire an kmod.xcape event
+        if k is None or k is not kmod:
+            if kmod.keyxcape(event):
+                emit.passthrough(event)
+            return
+        # k is kmod ... not expecting down events (it's already down)
+        assert(event.value != 1)
+        # hold events
+        if event.value == 2:
+            if k.keyheld():
+                emit.passthrough(event)
+            return
+        # we should be in an up event
+        assert(event.value == 0)
+        if k.isxcaped():
+            # if the key was xcaped reset internal state
+            k.keyreset()
+        else:
+            # the key was pressed by itself
+            k.keysolo()
+        # release the modifier
+        kmod = None
+        if k.keyup():
+            emit.passthrough(event)
+        return
+
+    # event.code was not remapped. passing through ...
+    if k is None:
+        emit.passthrough(event)
+        return
+
+    # straightfwd remaping
+    if isinstance(k, int):
+        emit.key(k, event.value)
+        return
+
+    # we should not be receiving hold events at this point. they should be
+    # caught under kmod handling
+    assert(event.value != 2)
+
+    # down
+    if event.value == 1:
+        if k.keydown():
+            emit.passthrough(event)
+        # set as a modifier to potentially receive xcape and hold events
+        kmod = k
+        return
+
+    # up
+    assert(event.value == 0)
+    if k.keyup():
+        emit.passthrough(event)
+
+# -- main --
+for event in kbd.read_loop():
+    if event.type == evdev.ecodes.EV_KEY:
+        do_kevent(event)
+    else:
+        emit.passthrough(event)
