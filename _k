@@ -63,7 +63,7 @@ def do_kevent(event):
 
     # straightfwd remaping
     if isinstance(k, int):
-        emit.key(k, event.value)
+        emit.keyevent(k, event.value)
         return
 
     # we should not be receiving hold events at this point. they should be
