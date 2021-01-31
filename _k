@@ -7,6 +7,7 @@ import sys
 import emit
 import profile
 
+
 def do_kevent(event):
     global kmod
 
@@ -69,10 +70,12 @@ def do_kevent(event):
     if k.keyup():
         emit.passthrough(event)
 
+
 def usage():
     print("_k: <profile>")
     sys.exit(1)
-    
+
+
 # -- main --
 
 if len(sys.argv) == 2:
