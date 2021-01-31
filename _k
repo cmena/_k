@@ -2,24 +2,10 @@
 
 import atexit
 import evdev
+import sys
 
 import emit
 import profile
-
-kbd = evdev.InputDevice(profile.device())
-ui = evdev.UInput.from_device(kbd, name="=kbd=")
-
-emit.setui(ui)
-
-atexit.register(ui.close)
-atexit.register(kbd.ungrab)
-
-kbd.grab()
-
-remap = profile.keytab()
-
-# the currently held modifier key
-kmod = None
 
 def do_kevent(event):
     global kmod
@@ -83,7 +69,33 @@ def do_kevent(event):
     if k.keyup():
         emit.passthrough(event)
 
+def usage():
+    print("_k: <profile>")
+    sys.exit(1)
+    
 # -- main --
+
+if len(sys.argv) == 2:
+    profile.load(sys.argv[1])
+else:
+    usage()
+
+kbd = evdev.InputDevice(profile.device())
+ui = evdev.UInput.from_device(kbd, name="=kbd=")
+
+emit.setui(ui)
+
+atexit.register(ui.close)
+atexit.register(kbd.ungrab)
+
+kbd.grab()
+
+# the remapping table
+remap = profile.keytab()
+
+# the currently held modifier key
+kmod = None
+
 for event in kbd.read_loop():
     if event.type == evdev.ecodes.EV_KEY:
         do_kevent(event)
