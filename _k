@@ -90,7 +90,7 @@ def do_kevent(event):
 
 def initkbd():
     kbd = evdev.InputDevice(profile.device())
-    ui = evdev.UInput.from_device(kbd, name="=kbd=")
+    ui = evdev.UInput.from_device(kbd)
 
     emit.setui(ui)
 
