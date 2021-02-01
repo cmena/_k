@@ -8,6 +8,46 @@ import emit
 import profile
 
 
+def do_kmod(k, event):
+    """handle modifier events.  return the active modifier or None if it was
+    released.
+
+    """
+
+    # if event.code is not mapped (k is None) or its mapping does not refer
+    # to the active modifier (k is not kmod) fire an kmod.xcape event
+    if k is None or k is not kmod:
+        if kmod.keyxcape(event):
+            emit.passthrough(event)
+        return kmod
+
+    # k is kmod ... not expecting down events (it's already down)
+    assert(event.value != 1)
+
+    # hold events
+    if event.value == 2:
+        if k.keyheld():
+            emit.passthrough(event)
+        return kmod
+
+    # we should be in an up event
+    assert(event.value == 0)
+
+    if k.isxcaped():
+        # if the key was xcaped reset internal state
+        k.keyreset()
+    else:
+        # the key was pressed by itself
+        k.keysolo()
+
+    # fire the keyup
+    if k.keyup():
+        emit.passthrough(event)
+
+    # release kmod(ifier)
+    return None
+
+
 def do_kevent(event):
     global kmod
 
@@ -15,32 +55,9 @@ def do_kevent(event):
 
     k = remap.get(event.code)
 
+    # a modifier key is held down
     if kmod:
-        # if event.code is not mapped (k is None) or its mapping does not refer
-        # to the active modifier (k is not kmod) fire an kmod.xcape event
-        if k is None or k is not kmod:
-            if kmod.keyxcape(event):
-                emit.passthrough(event)
-            return
-        # k is kmod ... not expecting down events (it's already down)
-        assert(event.value != 1)
-        # hold events
-        if event.value == 2:
-            if k.keyheld():
-                emit.passthrough(event)
-            return
-        # we should be in an up event
-        assert(event.value == 0)
-        if k.isxcaped():
-            # if the key was xcaped reset internal state
-            k.keyreset()
-        else:
-            # the key was pressed by itself
-            k.keysolo()
-        # release the modifier
-        kmod = None
-        if k.keyup():
-            emit.passthrough(event)
+        kmod = do_kmod(k, event)
         return
 
     # event.code was not remapped. passing through ...
