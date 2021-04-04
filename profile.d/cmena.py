@@ -16,18 +16,25 @@ def keytab():
 
     """
 
-    # turn KEY_LEFTCTRL to HYPER in emacs:
+    # make KEY_LEFTCTRL emit HYPER (mod3) with the aid of xkb:
     #
-    #  1. map KEY_LEFTCTRL to F13 (on my thinkpad <XF86Tools>)
+    #  1. map KEY_LEFTCTRL into KEY_CAPSLOCK
     #
-    #  2. apply hyper modifier to <XF86Tools>
-    #     (define-key function-key-map (kbd "<XF86Tools>")
-    #      'event-apply-hyper-modifier)
-    #
-    #  note: is there a way to generate HYPER through evdev?
+    #  2. patch /usr/share/X11/xkb/symbols/pc:
+    #     --- pc.original  2021-04-04 10:27:19.865794591 -0700
+    #     +++ pc           2021-04-04 10:32:44.802757364 -0700
+    #     @@ -21,3 +21,3 @@
+    #     -    key <CAPS> {       [ Caps_Lock             ]       };
+    #     +    key <CAPS> {       [ Hyper_L, Hyper_R      ]       };
+    #          key <NMLK> {       [ Num_Lock              ]       };
+    #     @@ -55,3 +55,3 @@
+    #          key <HYPR> {       [ NoSymbol, Hyper_L     ]       };
+    #     -    modifier_map Mod4   { <HYPR> };
+    #     +    modifier_map Mod3   { <HYPR> };
+    #          // End of modifier mappings.
 
     return {
-        evdev.ecodes.KEY_LEFTCTRL   : evdev.ecodes.KEY_F13, # hyper
+        evdev.ecodes.KEY_LEFTCTRL   : evdev.ecodes.KEY_CAPSLOCK, # hyper
         evdev.ecodes.KEY_F1         : volkey(evdev.ecodes.KEY_MUTE),
         evdev.ecodes.KEY_F2         : volkey(evdev.ecodes.KEY_VOLUMEDOWN),
         evdev.ecodes.KEY_F3         : volkey(evdev.ecodes.KEY_VOLUMEUP),
