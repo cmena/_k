@@ -25,7 +25,7 @@ def keytab():
     #     +++ pc           2021-04-04 10:32:44.802757364 -0700
     #     @@ -21,3 +21,3 @@
     #     -    key <CAPS> {       [ Caps_Lock             ]       };
-    #     +    key <CAPS> {       [ Hyper_L, Hyper_R      ]       };
+    #     +    key <CAPS> {       [ Hyper_L               ]       };
     #          key <NMLK> {       [ Num_Lock              ]       };
     #     @@ -55,3 +55,3 @@
     #          key <HYPR> {       [ NoSymbol, Hyper_L     ]       };
@@ -35,6 +35,7 @@ def keytab():
 
     return {
         evdev.ecodes.KEY_LEFTCTRL   : evdev.ecodes.KEY_CAPSLOCK, # hyper
+        evdev.ecodes.KEY_RIGHTCTRL  : evdev.ecodes.KEY_CAPSLOCK, # hyper
         evdev.ecodes.KEY_F1         : volkey(evdev.ecodes.KEY_MUTE),
         evdev.ecodes.KEY_F2         : volkey(evdev.ecodes.KEY_VOLUMEDOWN),
         evdev.ecodes.KEY_F3         : volkey(evdev.ecodes.KEY_VOLUMEUP),
