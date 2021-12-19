@@ -144,6 +144,8 @@ def ismediawin():
         return True
     if "mpv" in win:
         return True
+    if "deadbeef" in win:
+        return True
     return False
 
 
